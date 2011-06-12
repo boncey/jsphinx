@@ -1,4 +1,4 @@
-package java.org.boncey.jsphinx;
+package org.boncey.jsphinx;
 
 
 import org.apache.log4j.Logger;

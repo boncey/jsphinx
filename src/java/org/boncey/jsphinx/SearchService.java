@@ -1,5 +1,8 @@
-package java.org.boncey.jsphinx;
+package org.boncey.jsphinx;
 
+
+import org.boncey.jsphinx.SearchCommand;
+import org.boncey.jsphinx.SearchResultContainer;
 
 import org.apache.log4j.Logger;
 import org.sphx.api.SphinxClient;
