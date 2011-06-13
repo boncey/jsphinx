@@ -1,9 +1,6 @@
 package org.boncey.jsphinx;
 
 
-import org.boncey.jsphinx.SearchCommand;
-import org.boncey.jsphinx.SearchResultContainer;
-
 import org.apache.log4j.Logger;
 import org.sphx.api.SphinxClient;
 import org.sphx.api.SphinxException;
@@ -122,6 +119,7 @@ public abstract class SearchService
             sphinx.SetMatchMode(mode);
             sphinx.SetLimits(offset, limit, MAX_MATCHES);
 
+            // If searching by text sort by relevance, otherwise sort by specified field
             if (searchPhrase == null || searchPhrase.isEmpty())
             {
                 sphinx.SetSortMode(SphinxClient.SPH_SORT_ATTR_DESC, getSortField());
@@ -144,7 +142,6 @@ public abstract class SearchService
                 _log.warn("WARNING: " + sphinx.GetLastWarning() + "\n");
             }
 
-            /* print me out */
             if (_log.isDebugEnabled())
             {
                 totalFound = res.total;
@@ -170,6 +167,8 @@ public abstract class SearchService
 
     /**
      * Get the field to sort by.
+     * 
+     * @see <a href="http://sphinxsearch.com/docs/current.html#sorting-modes">Sphinx docs</a>
      * 
      * @return
      */
@@ -245,6 +244,8 @@ public abstract class SearchService
     /**
      * Create a Map of field weightings.
      * 
+     * @see <a href="http://sphinxsearch.com/docs/current.html#weighting">Sphinx docs</a>
+     * 
      * @return
      */
     abstract protected Map<String, Integer> createFieldWeightings();
@@ -252,6 +253,8 @@ public abstract class SearchService
 
     /**
      * Filter by various properties.
+     * 
+     * @see <a href="http://sphinxsearch.com/docs/current.html#delta-updates">Sphinx docs</a>
      * 
      * @param searchCommand
      * @param sphinx

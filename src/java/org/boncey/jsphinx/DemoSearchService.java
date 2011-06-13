@@ -109,7 +109,7 @@ public class DemoSearchService extends SearchService
 
         // Example of filtering by tags
 
-        // List<Tag> tags = blogSearchCommand.getTags();
+        // List<Tag> tags = demoSearchCommand.getTags();
         //
         // if (tags.size() > 0)
         // {
