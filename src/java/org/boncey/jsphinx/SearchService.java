@@ -46,7 +46,7 @@ public abstract class SearchService
     /**
      * Sphinx host;
      */
-    private final String _host = "localhost";
+    private String _host = "localhost";
 
 
     /**
@@ -71,12 +71,12 @@ public abstract class SearchService
     {
 
         String host = properties.getProperty("sphinxHost");
-        if (host == null)
+        if (host != null)
         {
-            host = _host;
+            _host = host;
         }
         String port = properties.getProperty("sphinxPort");
-        if (port == null)
+        if (port != null)
         {
             _port = Integer.parseInt(port);
         }
@@ -260,5 +260,33 @@ public abstract class SearchService
      * @throws SphinxException
      */
     abstract protected void addFilters(SearchCommand searchCommand, SphinxClient sphinx) throws SphinxException;
+
+
+    protected int getPort()
+    {
+
+        return _port;
+    }
+
+
+    protected String getHost()
+    {
+
+        return _host;
+    }
+
+
+    protected String getIndexCommand()
+    {
+
+        return _indexCommand;
+    }
+
+
+    protected String getConfigFile()
+    {
+
+        return _configFile;
+    }
 
 }
