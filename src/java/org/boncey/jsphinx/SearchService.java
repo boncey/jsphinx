@@ -71,14 +71,13 @@ public abstract class SearchService
     {
 
         String host = properties.getProperty("sphinxHost");
-        if (host != null)
+        if (host == null)
         {
             host = _host;
         }
         String port = properties.getProperty("sphinxPort");
-        if (port != null)
+        if (port == null)
         {
-
             _port = Integer.parseInt(port);
         }
 
