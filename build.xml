@@ -20,7 +20,7 @@
         </fileset>
     </path>
 
-    <target name="build" depends="clean, prep, compile, jar">
+    <target name="build" depends="clean, prep, compile, jar, src-jar">
     </target>
 
     <target name="all" depends="build">
@@ -49,5 +49,11 @@
         <mkdir dir="${project.target}" />
         <jar jarfile="${project.target}/${project}.jar"
             basedir="${project.classes}"/>
+    </target>
+
+    <target name="src-jar" description="Build project into a jar for easier deployment">
+        <mkdir dir="${project.target}" />
+        <jar jarfile="${project.target}/${project}-src.jar"
+            basedir="${project.source}"/>
     </target>
 </project>
