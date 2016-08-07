@@ -141,9 +141,9 @@ public abstract class SearchService
                 _log.warn("WARNING: " + sphinx.GetLastWarning() + "\n");
             }
 
+            totalFound = res.total;
             if (_log.isDebugEnabled())
             {
-                totalFound = res.total;
                 _log.debug("Query '" + searchCommand.getSearchPhrase() + "' retrieved " + res.total + " of " + res.totalFound + " matches in " + res.time
                         + " sec.");
             }
@@ -197,6 +197,7 @@ public abstract class SearchService
         {
             _log.error("Unable to re-index delta index; error follows");
             _log.error(getProcessOutput(proc.getErrorStream()));
+            _log.error(getProcessOutput(proc.getInputStream()));
 
         }
         else if (_log.isDebugEnabled())
