@@ -18,7 +18,7 @@ public class SearchPaginator
      * Logger for log4j.
      */
     @SuppressWarnings("unused")
-    private static Logger _log = Logger.getLogger(SearchPaginator.class);
+    private static final Logger _log = Logger.getLogger(SearchPaginator.class);
 
     /**
      * The number of elements to show per page.
@@ -43,8 +43,18 @@ public class SearchPaginator
      */
     public SearchPaginator(int pageSize, int currentPage)
     {
+        this(pageSize, currentPage, SearchService.MAX_MATCHES);
+    }
 
-        int maxPages = SearchService.MAX_MATCHES / pageSize;
+    /**
+     * Default constructor.
+     * 
+     * @param pageSize
+     * @param currentPage
+     */
+    public SearchPaginator(int pageSize, int currentPage, int maxResults)
+    {
+        int maxPages = maxResults / pageSize;
         _pageSize = pageSize;
         _currentPage = currentPage == 0 ? 1 : currentPage;
         _currentPage = _currentPage > maxPages ? maxPages : _currentPage;
