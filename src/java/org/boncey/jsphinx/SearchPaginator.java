@@ -1,7 +1,9 @@
 package org.boncey.jsphinx;
 
-
 import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * For paginating search results.
@@ -18,24 +20,20 @@ public class SearchPaginator
     @SuppressWarnings("unused")
     private static Logger _log = Logger.getLogger(SearchPaginator.class);
 
-
     /**
      * The number of elements to show per page.
      */
     private final int _pageSize;
-
 
     /**
      * The total results returned.
      */
     private int _totalFound;
 
-
     /**
      * The page being viewed currently.
      */
     private int _currentPage;
-
 
     /**
      * Default constructor.
@@ -51,7 +49,6 @@ public class SearchPaginator
         _currentPage = currentPage == 0 ? 1 : currentPage;
         _currentPage = _currentPage > maxPages ? maxPages : _currentPage;
     }
-
 
     /**
      * Get the search offset for the given page number.
@@ -69,7 +66,6 @@ public class SearchPaginator
 
         return offset;
     }
-
 
     /**
      * Get the number of pages returned.
@@ -94,7 +90,6 @@ public class SearchPaginator
         return numPages;
     }
 
-
     /**
      * Get the pageSize.
      * 
@@ -105,7 +100,6 @@ public class SearchPaginator
 
         return _pageSize;
     }
-
 
     /**
      * Get the totalFound.
@@ -118,7 +112,6 @@ public class SearchPaginator
         return _totalFound;
     }
 
-
     /**
      * Set the totalFound.
      * 
@@ -129,7 +122,6 @@ public class SearchPaginator
 
         _totalFound = totalFound;
     }
-
 
     /**
      * Get the currentPage.
@@ -142,7 +134,6 @@ public class SearchPaginator
         return _currentPage;
     }
 
-
     /**
      * Set the currentPage.
      * 
@@ -153,7 +144,6 @@ public class SearchPaginator
 
         _currentPage = currentPage;
     }
-
 
     /**
      * Is there a next page?
@@ -166,7 +156,6 @@ public class SearchPaginator
         return _currentPage < getNumPages();
     }
 
-
     /**
      * Is there a previous page?
      * 
@@ -177,7 +166,6 @@ public class SearchPaginator
 
         return _currentPage > 1;
     }
-
 
     /**
      * Get the maximum number of results Search will return.
@@ -190,7 +178,6 @@ public class SearchPaginator
         return SearchService.MAX_MATCHES;
     }
 
-
     /**
      * Are there any page links to display?
      * 
@@ -202,6 +189,23 @@ public class SearchPaginator
         return getNumPages() > 1;
     }
 
+    /**
+     * Get pages as a List (up to a specified maximum).
+     *
+     * @param max
+     * @return
+     */
+    public List<Integer> getPages(int max)
+    {
+        List<Integer> pages = new ArrayList<>();
+        int numPages = Math.min(max, getNumPages());
+        for (int i = 1; i <= numPages; i++)
+        {
+            pages.add(i);
+        }
+
+        return pages;
+    }
 
     /**
      * {@inheritDoc}
