@@ -1,6 +1,5 @@
 package org.boncey.jsphinx;
 
-
 import org.apache.log4j.Logger;
 import org.sphx.api.SphinxClient;
 import org.sphx.api.SphinxException;
@@ -30,36 +29,30 @@ public abstract class SearchService
      */
     public static final int MAX_MATCHES = 1000;
 
-
     /**
      * Logger for log4j.
      */
     private static Logger _log = Logger.getLogger(SearchService.class);
-
 
     /**
      * Sphinx port.
      */
     private int _port = 9313;
 
-
     /**
      * Sphinx host;
      */
     private String _host = "localhost";
-
 
     /**
      * The command that does the Sphinx indexing.
      */
     private final String _indexCommand;
 
-
     /**
      * The filename of the Sphinx config.
      */
     private final String _configFile;
-
 
     /**
      * Default constructor.
@@ -90,14 +83,14 @@ public abstract class SearchService
         }
     }
 
-
     /**
      * Search for the given parameters.
      * 
      * @param searchCommand
      * @return a List of ids.
+     * @throws SphinxException
      */
-    public SearchResultContainer search(SearchCommand searchCommand)
+    public SearchResultContainer search(SearchCommand searchCommand) throws SphinxException
     {
 
         int totalFound = 0;
@@ -110,59 +103,51 @@ public abstract class SearchService
 
         SphinxClient sphinx = new SphinxClient();
 
-        try
+        sphinx.SetServer(_host, _port);
+        Map<String, Integer> fieldWeights = createFieldWeightings();
+        sphinx.SetFieldWeights(fieldWeights);
+        sphinx.SetMatchMode(mode);
+        sphinx.SetLimits(offset, limit, MAX_MATCHES);
+
+        // If searching by text sort by relevance, otherwise sort by specified field
+        if (searchPhrase == null || searchPhrase.isEmpty())
         {
-            sphinx.SetServer(_host, _port);
-            Map<String, Integer> fieldWeights = createFieldWeightings();
-            sphinx.SetFieldWeights(fieldWeights);
-            sphinx.SetMatchMode(mode);
-            sphinx.SetLimits(offset, limit, MAX_MATCHES);
-
-            // If searching by text sort by relevance, otherwise sort by specified field
-            if (searchPhrase == null || searchPhrase.isEmpty())
-            {
-                sphinx.SetSortMode(SphinxClient.SPH_SORT_ATTR_DESC, getSortField());
-            }
-            else
-            {
-                sphinx.SetSortMode(SphinxClient.SPH_SORT_EXTENDED, String.format("@relevance DESC, %s DESC", getSortField()));
-            }
-
-            addFilters(searchCommand, sphinx);
-
-            SphinxResult res = sphinx.Query(searchPhrase);
-            if (res == null)
-            {
-                throw new RuntimeException("Sphinx Error: " + sphinx.GetLastError());
-            }
-
-            if (sphinx.GetLastWarning() != null && sphinx.GetLastWarning().length() > 0)
-            {
-                _log.warn("WARNING: " + sphinx.GetLastWarning() + "\n");
-            }
-
-            totalFound = res.total;
-            if (_log.isDebugEnabled())
-            {
-                _log.debug("Query '" + searchCommand.getSearchPhrase() + "' retrieved " + res.total + " of " + res.totalFound + " matches in " + res.time
-                        + " sec.");
-            }
-
-            for (SphinxMatch info : res.matches)
-            {
-                searchIds.add(new Long(info.docId));
-            }
+            sphinx.SetSortMode(SphinxClient.SPH_SORT_ATTR_DESC, getSortField());
         }
-        catch (SphinxException e)
+        else
         {
-            throw new RuntimeException(e);
+            sphinx.SetSortMode(SphinxClient.SPH_SORT_EXTENDED, String.format("@relevance DESC, %s DESC", getSortField()));
+        }
+
+        addFilters(searchCommand, sphinx);
+
+        SphinxResult res = sphinx.Query(searchPhrase);
+        if (res == null)
+        {
+            throw new SphinxException("Sphinx Error: " + sphinx.GetLastError());
+        }
+
+        if (sphinx.GetLastWarning() != null && sphinx.GetLastWarning().length() > 0)
+        {
+            _log.warn("WARNING: " + sphinx.GetLastWarning() + "\n");
+        }
+
+        totalFound = res.total;
+        if (_log.isDebugEnabled())
+        {
+            _log.debug(
+                    "Query '" + searchCommand.getSearchPhrase() + "' retrieved " + res.total + " of " + res.totalFound + " matches in " + res.time + " sec.");
+        }
+
+        for (SphinxMatch info : res.matches)
+        {
+            searchIds.add(new Long(info.docId));
         }
 
         SearchResultContainer results = new SearchResultContainer(searchIds, totalFound);
 
         return results;
     }
-
 
     /**
      * Get the field to sort by.
@@ -172,7 +157,6 @@ public abstract class SearchService
      * @return
      */
     protected abstract String getSortField();
-
 
     /**
      * Re-index the delta index.
@@ -207,14 +191,12 @@ public abstract class SearchService
         }
     }
 
-
     /**
      * Return the name of the delta index.
      * 
      * @return
      */
     protected abstract String getDeltaIndexName();
-
 
     /**
      * Get the process output.
@@ -240,7 +222,6 @@ public abstract class SearchService
         return output;
     }
 
-
     /**
      * Create a Map of field weightings.
      * 
@@ -249,7 +230,6 @@ public abstract class SearchService
      * @return
      */
     abstract protected Map<String, Integer> createFieldWeightings();
-
 
     /**
      * Filter by various properties.
@@ -262,13 +242,11 @@ public abstract class SearchService
      */
     abstract protected void addFilters(SearchCommand searchCommand, SphinxClient sphinx) throws SphinxException;
 
-
     protected int getPort()
     {
 
         return _port;
     }
-
 
     protected String getHost()
     {
@@ -276,13 +254,11 @@ public abstract class SearchService
         return _host;
     }
 
-
     protected String getIndexCommand()
     {
 
         return _indexCommand;
     }
-
 
     protected String getConfigFile()
     {
