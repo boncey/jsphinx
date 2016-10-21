@@ -121,7 +121,7 @@ public abstract class SearchService
 
         addFilters(searchCommand, sphinx);
 
-        SphinxResult res = sphinx.Query(searchPhrase);
+        SphinxResult res = sphinx.Query(searchPhrase, searchCommand.getIndexNames());
         if (res == null)
         {
             throw new SphinxException("Sphinx Error: " + sphinx.GetLastError());

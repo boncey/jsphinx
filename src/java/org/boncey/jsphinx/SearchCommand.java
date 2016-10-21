@@ -1,6 +1,5 @@
 package org.boncey.jsphinx;
 
-
 import org.apache.log4j.Logger;
 
 import java.io.UnsupportedEncodingException;
@@ -22,41 +21,42 @@ public class SearchCommand
      */
     private static final int PER_PAGE = 100;
 
-
     /**
      * Logger for log4j.
      */
     private static Logger _log = Logger.getLogger(SearchCommand.class);
-
 
     /**
      * The text to search for.
      */
     private String _searchPhrase;
 
-
     /**
      * The results to offset by.
      */
     private int _offset;
-
 
     /**
      * How many results to return.
      */
     private int _perPage;
 
+    /**
+     * The names of any indexes to search (default is '*' which searches all indexes).
+     * 
+     * Note: Use spaces to separate multiple indexes.
+     */
+    private String _indexNames;
 
     /**
      * Default constructor.
      */
     public SearchCommand()
     {
-
         _offset = 0;
         _perPage = PER_PAGE;
+        _indexNames = "*";
     }
-
 
     /**
      * 
@@ -69,7 +69,6 @@ public class SearchCommand
         _searchPhrase = searchPhrase;
     }
 
-
     /**
      * Get the searchPhrase.
      * 
@@ -80,7 +79,6 @@ public class SearchCommand
 
         return _searchPhrase;
     }
-
 
     /**
      * Set the searchPhrase.
@@ -93,7 +91,6 @@ public class SearchCommand
         _searchPhrase = searchPhrase;
     }
 
-
     /**
      * Get the offset.
      * 
@@ -104,7 +101,6 @@ public class SearchCommand
 
         return _offset;
     }
-
 
     /**
      * Set the offset.
@@ -117,7 +113,6 @@ public class SearchCommand
         _offset = offset;
     }
 
-
     /**
      * Get the perPage.
      * 
@@ -128,7 +123,6 @@ public class SearchCommand
 
         return _perPage;
     }
-
 
     /**
      * Set the perPage.
@@ -141,6 +135,15 @@ public class SearchCommand
         _perPage = perPage;
     }
 
+    public String getIndexNames()
+    {
+        return _indexNames;
+    }
+
+    public void setIndexNames(String indexNames)
+    {
+        _indexNames = indexNames;
+    }
 
     /**
      * {@inheritDoc}
@@ -151,7 +154,6 @@ public class SearchCommand
 
         return String.format("SearchCommand: %s", _searchPhrase);
     }
-
 
     /**
      * Get the query String for this search.
