@@ -162,8 +162,9 @@ public abstract class SearchService
      * Re-index the delta index.
      * 
      * @throws IOException
+     * @throws SphinxException
      */
-    public void reIndexDelta() throws IOException
+    public void reIndexDelta() throws IOException, SphinxException
     {
 
         Process proc = new ProcessBuilder(_indexCommand, "--config", _configFile, "--rotate", getDeltaIndexName()).start();
@@ -179,10 +180,10 @@ public abstract class SearchService
 
         if (proc.exitValue() != 0)
         {
-            _log.error("Unable to re-index delta index; error follows");
-            _log.error(getProcessOutput(proc.getErrorStream()));
-            _log.error(getProcessOutput(proc.getInputStream()));
-
+            _log.error("Unable to re-index delta index");
+            StringBuilder errorOutput = getProcessOutput(proc.getInputStream());
+            _log.error(errorOutput);
+            throw new SphinxException(errorOutput.toString());
         }
         else if (_log.isDebugEnabled())
         {
@@ -219,6 +220,7 @@ public abstract class SearchService
 
             line = in.readLine();
         }
+
         return output;
     }
 
