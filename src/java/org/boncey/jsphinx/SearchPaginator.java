@@ -9,7 +9,7 @@ import java.util.List;
  * For paginating search results.
  * 
  * @author Darren Greaves
- * @version $Id$ Copyright (c) 2010 Darren Greaves.
+ * Copyright (c) 2010 Darren Greaves.
  */
 public class SearchPaginator
 {

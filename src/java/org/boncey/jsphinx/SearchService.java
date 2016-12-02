@@ -17,11 +17,11 @@ import java.util.Properties;
 
 /**
  * Service for searching Sphinx.
- * 
+ *
  * @author Darren Greaves
- * @version $Id$ Copyright (c) 2010 Darren Greaves.
+ * Copyright (c) 2010 Darren Greaves.
  */
-public abstract class SearchService
+public abstract class SearchService<S extends SearchCommand>
 {
 
     /**
@@ -33,6 +33,11 @@ public abstract class SearchService
      * Logger for log4j.
      */
     private static Logger _log = Logger.getLogger(SearchService.class);
+
+    public enum SortOrder
+    {
+        ASC, DESC;
+    }
 
     /**
      * Sphinx port.
@@ -56,9 +61,9 @@ public abstract class SearchService
 
     /**
      * Default constructor.
-     * 
+     *
      * @param properties
-     * 
+     *
      */
     public SearchService(Properties properties)
     {
@@ -85,12 +90,12 @@ public abstract class SearchService
 
     /**
      * Search for the given parameters.
-     * 
+     *
      * @param searchCommand
      * @return a List of ids.
      * @throws SphinxException
      */
-    public SearchResultContainer search(SearchCommand searchCommand) throws SphinxException
+    public SearchResultContainer search(S searchCommand) throws SphinxException
     {
 
         int totalFound = 0;
@@ -109,14 +114,21 @@ public abstract class SearchService
         sphinx.SetMatchMode(mode);
         sphinx.SetLimits(offset, limit, MAX_MATCHES);
 
-        // If searching by text sort by relevance, otherwise sort by specified field
-        if (searchPhrase == null || searchPhrase.isEmpty())
+        if (searchCommand.isSortByRelevance())
         {
-            sphinx.SetSortMode(SphinxClient.SPH_SORT_ATTR_DESC, getSortField());
+            // Sort by relevance then specified sort field
+            sphinx.SetSortMode(SphinxClient.SPH_SORT_EXTENDED,
+                    String.format("@relevance DESC, %s %s", searchCommand.getSortField(), searchCommand.getSortOrder()));
         }
         else
         {
-            sphinx.SetSortMode(SphinxClient.SPH_SORT_EXTENDED, String.format("@relevance DESC, %s DESC", getSortField()));
+            int sortMode = SphinxClient.SPH_SORT_ATTR_ASC;
+            if (searchCommand.getSortOrder() == SortOrder.DESC)
+            {
+                sortMode = SphinxClient.SPH_SORT_ATTR_DESC;
+            }
+            // Sort purely by specified sort field
+            sphinx.SetSortMode(sortMode, searchCommand.getSortField());
         }
 
         addFilters(searchCommand, sphinx);
@@ -151,16 +163,21 @@ public abstract class SearchService
 
     /**
      * Get the field to sort by.
-     * 
+     *
      * @see <a href="http://sphinxsearch.com/docs/current.html#sorting-modes">Sphinx docs</a>
-     * 
+     *
      * @return
+     * @deprecated See {@link SearchCommand#getSortField}
      */
-    protected abstract String getSortField();
+    @Deprecated
+    protected String getSortField()
+    {
+        return "";
+    }
 
     /**
      * Re-index the delta index.
-     * 
+     *
      * @throws IOException
      * @throws SphinxException
      */
@@ -194,14 +211,14 @@ public abstract class SearchService
 
     /**
      * Return the name of the delta index.
-     * 
+     *
      * @return
      */
     protected abstract String getDeltaIndexName();
 
     /**
      * Get the process output.
-     * 
+     *
      * @param stream the error or stdout stream.
      * @return
      * @throws IOException
@@ -226,23 +243,23 @@ public abstract class SearchService
 
     /**
      * Create a Map of field weightings.
-     * 
+     *
      * @see <a href="http://sphinxsearch.com/docs/current.html#weighting">Sphinx docs</a>
-     * 
+     *
      * @return
      */
     abstract protected Map<String, Integer> createFieldWeightings();
 
     /**
      * Filter by various properties.
-     * 
+     *
      * @see <a href="http://sphinxsearch.com/docs/current.html#delta-updates">Sphinx docs</a>
-     * 
+     *
      * @param searchCommand
      * @param sphinx
      * @throws SphinxException
      */
-    abstract protected void addFilters(SearchCommand searchCommand, SphinxClient sphinx) throws SphinxException;
+    abstract protected void addFilters(S searchCommand, SphinxClient sphinx) throws SphinxException;
 
     protected int getPort()
     {
