@@ -31,9 +31,12 @@
 package org.sphx.api;
 
 import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.net.SocketAddress.*;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Sphinx client class */
 public class SphinxClient
@@ -112,6 +115,7 @@ public class SphinxClient
 	private final static int SPH_FILTER_VALUES		= 0;
 	private final static int SPH_FILTER_RANGE		= 1;
 	private final static int SPH_FILTER_FLOATRANGE	= 2;
+	private final static int SPH_FILTER_STRING		= 3;
 
 
 	private String		_host;
@@ -255,7 +259,7 @@ public class SphinxClient
 		if ( !condition )
 		{
 			_error = err;
-			throw new SphinxException ( err );
+			throw new SphinxException( err );
 		}
 	}
 
@@ -307,7 +311,7 @@ public class SphinxClient
 			sock.setSoTimeout ( _timeout );
 			InetSocketAddress addr = new InetSocketAddress ( _host, _port );
 			sock.connect ( addr, _timeout );
-			
+
 			DataInputStream sIn = new DataInputStream ( sock.getInputStream() );
 			int version = sIn.readInt();
 			if ( version<1 )
@@ -628,6 +632,26 @@ public class SphinxClient
 		_filterCount++;
 	}
 
+	/** Set values filter. Only match records where attribute value matches. */
+	public void SetFilter ( String attribute, String value, boolean exclude ) throws SphinxException
+	{
+		myAssert ( value!=null && value.length()>0, "value must not be null or empty" );
+		myAssert ( attribute!=null && attribute.length()>0, "attribute name must not be null or empty" );
+
+		try
+		{
+			writeNetUTF8 ( _filters, attribute );
+			_filters.writeInt ( SPH_FILTER_STRING );
+			writeNetUTF8 ( _filters, value );
+			_filters.writeInt ( exclude ? 1 : 0 );
+
+		} catch ( Exception e )
+		{
+			myAssert ( false, "IOException: " + e.getMessage() );
+		}
+		_filterCount++;
+	}
+
 	/** Set values filter with a single value (syntax sugar; see {@link #SetFilter(String,int[],boolean)}). */
 	public void SetFilter ( String attribute, int value, boolean exclude ) throws SphinxException
 	{
@@ -797,19 +821,19 @@ public class SphinxClient
 
 
 	/** Connect to searchd server and run current search query against all indexes (syntax sugar). */
-	public SphinxResult Query ( String query ) throws SphinxException
+	public SphinxResult Query (String query ) throws SphinxException
 	{
 		return Query ( query, "*", "" );
 	}
 
 	/** Connect to searchd server and run current search query against all indexes (syntax sugar). */
-	public SphinxResult Query ( String query, String index ) throws SphinxException
+	public SphinxResult Query (String query, String index ) throws SphinxException
 	{
 		return Query ( query, index, "" );
 	}
 
 	/** Connect to searchd server and run current search query. */
-	public SphinxResult Query ( String query, String index, String comment ) throws SphinxException
+	public SphinxResult Query (String query, String index, String comment ) throws SphinxException
 	{
 		myAssert ( _reqs==null || _reqs.size()==0, "AddQuery() and Query() can not be combined; use RunQueries() instead" );
 
@@ -995,7 +1019,7 @@ public class SphinxClient
 		if ( in==null )
 			return null;
 
-		SphinxResult[] results = new SphinxResult [ nreqs ];
+		SphinxResult[] results = new SphinxResult[ nreqs ];
 		_reqs = new ArrayList();
 
 		try
@@ -1042,7 +1066,7 @@ public class SphinxClient
 				for ( int matchesNo=0; matchesNo<count; matchesNo++ )
 				{
 					SphinxMatch docInfo;
-					docInfo = new SphinxMatch (
+					docInfo = new SphinxMatch(
 							( id64==0 ) ? readDword(in) : in.readLong(),
 							in.readInt() );
 
@@ -1083,7 +1107,7 @@ public class SphinxClient
 								vals[k] = readDword ( in );
 
 							docInfo.attrValues.add ( attrNumber, vals );
-							
+
 						} else if ( type==SPH_ATTR_MULTI64 )
 						{
 							val = val / 2;
@@ -1092,7 +1116,7 @@ public class SphinxClient
 								vals[k] = in.readLong ();
 
 							docInfo.attrValues.add ( attrNumber, vals );
-							
+
 						} else
 						{
 							docInfo.attrValues.add ( attrNumber, new Long ( val ) );
@@ -1105,9 +1129,9 @@ public class SphinxClient
 				res.totalFound = in.readInt();
 				res.time = in.readInt() / 1000.0f;
 
-				res.words = new SphinxWordInfo [ in.readInt() ];
+				res.words = new SphinxWordInfo[ in.readInt() ];
 				for ( int i=0; i<res.words.length; i++ )
-					res.words[i] = new SphinxWordInfo ( readNetUTF8(in), readDword(in), readDword(in) );
+					res.words[i] = new SphinxWordInfo( readNetUTF8(in), readDword(in), readDword(in) );
 			}
 			return results;
 
@@ -1176,7 +1200,7 @@ public class SphinxClient
 			writeNetUTF8 ( req, (String) opts.get("chunk_separator") );
 			req.writeInt ( ((Integer) opts.get("limit")).intValue() );
 			req.writeInt ( ((Integer) opts.get("around")).intValue() );
-			
+
 			req.writeInt ( ((Integer) opts.get("limit_passages")).intValue() );
 			req.writeInt ( ((Integer) opts.get("limit_words")).intValue() );
 			req.writeInt ( ((Integer) opts.get("start_passage_id")).intValue() );
@@ -1238,7 +1262,7 @@ public class SphinxClient
 	 * @param ignorenonexistent	the flag whether to silently ignore non existent columns up update request
 	 * @return			-1 on failure, amount of actually found and updated documents (might be 0) on success
 	 *
-	 * @throws			SphinxException on invalid parameters
+	 * @throws SphinxException on invalid parameters
 	 */
 	public int UpdateAttributes ( String index, String[] attrs, long[][] values, boolean ignorenonexistent ) throws SphinxException
 	{
@@ -1298,8 +1322,8 @@ public class SphinxClient
 		}
 	}
 
-	
-	
+
+
 	/**
 	 * Connect to searchd server and update given MVA attributes on given document in given indexes.
 	 * Sample code that will set group_id=(123, 456, 789) where id=10
@@ -1322,7 +1346,7 @@ public class SphinxClient
 	 * @param ignorenonexistent	the flag whether to silently ignore non existent columns up update request
 	 * @return			-1 on failure, amount of actually found and updated documents (might be 0) on success
 	 *
-	 * @throws			SphinxException on invalid parameters
+	 * @throws SphinxException on invalid parameters
 	 */
 	public int UpdateAttributesMVA ( String index, long docid, String[] attrs, int[][] values, boolean ignorenonexistent ) throws SphinxException
 	{
@@ -1354,7 +1378,7 @@ public class SphinxClient
 
 			req.writeInt ( 1 );
 			req.writeLong ( docid ); /* send docid as 64bit value */
-			
+
 			for ( int i=0; i<values.length; i++ )
 			{
 				req.writeInt ( values[i].length ); /* send MVA's count */
@@ -1384,7 +1408,7 @@ public class SphinxClient
 			return -1;
 		}
 	}
-	
+
 	public int UpdateAttributes ( String index, String[] attrs, long[][] values ) throws SphinxException
 	{
 		return UpdateAttributes ( index, attrs, values, false );

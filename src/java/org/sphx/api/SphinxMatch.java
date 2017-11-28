@@ -4,7 +4,7 @@
 
 package org.sphx.api;
 
-import java.util.*;
+import java.util.ArrayList;
 
 /**
  * Matched document information, as in search result.
