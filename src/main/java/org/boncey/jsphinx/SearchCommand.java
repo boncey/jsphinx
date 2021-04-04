@@ -1,6 +1,8 @@
 package org.boncey.jsphinx;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.boncey.jsphinx.SearchService.SortOrder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -9,9 +11,9 @@ import java.util.List;
 
 /**
  * Command object for searching.
- * 
+ *
  * @author Darren Greaves
- * @version $Id$ Copyright (c) 2010 Darren Greaves.
+ * Copyright (c) 2010 Darren Greaves.
  */
 public class SearchCommand
 {
@@ -24,7 +26,7 @@ public class SearchCommand
     /**
      * Logger for log4j.
      */
-    private static Logger _log = Logger.getLogger(SearchCommand.class);
+    private static Logger _log = LoggerFactory.getLogger(SearchCommand.class);
 
     /**
      * The text to search for.
@@ -43,7 +45,7 @@ public class SearchCommand
 
     /**
      * The names of any indexes to search (default is '*' which searches all indexes).
-     * 
+     *
      * Note: Use spaces to separate multiple indexes.
      */
     private String _indexNames;
@@ -59,7 +61,7 @@ public class SearchCommand
     }
 
     /**
-     * 
+     *
      * @param searchPhrase
      */
     public SearchCommand(String searchPhrase)
@@ -71,7 +73,7 @@ public class SearchCommand
 
     /**
      * Get the searchPhrase.
-     * 
+     *
      * @return the searchPhrase.
      */
     public String getSearchPhrase()
@@ -82,7 +84,7 @@ public class SearchCommand
 
     /**
      * Set the searchPhrase.
-     * 
+     *
      * @param searchPhrase the searchPhrase to set.
      */
     public void setSearchPhrase(String searchPhrase)
@@ -93,7 +95,7 @@ public class SearchCommand
 
     /**
      * Get the offset.
-     * 
+     *
      * @return the offset.
      */
     public int getOffset()
@@ -104,7 +106,7 @@ public class SearchCommand
 
     /**
      * Set the offset.
-     * 
+     *
      * @param offset the offset to set.
      */
     public void setOffset(int offset)
@@ -115,7 +117,7 @@ public class SearchCommand
 
     /**
      * Get the perPage.
-     * 
+     *
      * @return the perPage.
      */
     public int getPerPage()
@@ -126,7 +128,7 @@ public class SearchCommand
 
     /**
      * Set the perPage.
-     * 
+     *
      * @param perPage the perPage to set.
      */
     public void setPerPage(int perPage)
@@ -146,18 +148,54 @@ public class SearchCommand
     }
 
     /**
+     * Is this a search by relevance or search by the specified sort field?
+     *
+     * @return
+     *
+     * @see SearchCommand#getSortField()
+     */
+    public boolean isSortByRelevance()
+    {
+        return _searchPhrase != null && !_searchPhrase.isEmpty();
+    }
+
+    /**
+     * Get the field to sort by. Override with your sort field.
+     *
+     * @see <a href="http://sphinxsearch.com/docs/current.html#sorting-modes">Sphinx docs</a>
+     *
+     * @return
+     */
+    public String getSortField()
+    {
+        return "";
+    }
+
+    /**
+     * Get the sort ordering. Override with your sort ordering.
+     *
+     * @see <a href="http://sphinxsearch.com/docs/current.html#sorting-modes">Sphinx docs</a>
+     *
+     * @return
+     *
+     */
+    public SortOrder getSortOrder()
+    {
+        return SortOrder.DESC;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public String toString()
     {
-
         return String.format("SearchCommand: %s", _searchPhrase);
     }
 
     /**
      * Get the query String for this search.
-     * 
+     *
      * @return the query String.
      */
     public String getQueryString()

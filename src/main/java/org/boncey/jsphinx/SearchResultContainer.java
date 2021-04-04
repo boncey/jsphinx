@@ -1,7 +1,7 @@
 package org.boncey.jsphinx;
 
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import java.util.List;
  * A wrapper around any search results.
  * 
  * @author Darren Greaves
- * @version $Id$ Copyright (c) 2010 Darren Greaves.
+ * Copyright (c) 2010 Darren Greaves.
  */
 public class SearchResultContainer
 {
@@ -21,7 +21,6 @@ public class SearchResultContainer
     {
 
     }
-
 
     /**
      * Field constructor.
@@ -37,25 +36,21 @@ public class SearchResultContainer
         _totalResults = totalResults;
     }
 
-
     /**
      * Logger for log4j.
      */
     @SuppressWarnings("unused")
-    private static Logger _log = Logger.getLogger(SearchResultContainer.class);
-
+    private static Logger _log = LoggerFactory.getLogger(SearchResultContainer.class);
 
     /**
      * The total number of matches.
      */
     private int _totalResults;
 
-
     /**
      * The ids of the search results.
      */
     private List<Long> _searchIds;
-
 
     /**
      * Get the searchIds.
@@ -68,7 +63,6 @@ public class SearchResultContainer
         return _searchIds;
     }
 
-
     /**
      * Get the totalResults.
      * 
@@ -79,7 +73,6 @@ public class SearchResultContainer
 
         return _totalResults;
     }
-
 
     /**
      * {@inheritDoc}

@@ -1,6 +1,7 @@
 package org.boncey.jsphinx;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  * For paginating search results.
  * 
  * @author Darren Greaves
- * @version $Id$ Copyright (c) 2010 Darren Greaves.
+ * Copyright (c) 2010 Darren Greaves.
  */
 public class SearchPaginator
 {
@@ -18,7 +19,7 @@ public class SearchPaginator
      * Logger for log4j.
      */
     @SuppressWarnings("unused")
-    private static final Logger _log = Logger.getLogger(SearchPaginator.class);
+    private static final Logger _log = LoggerFactory.getLogger(SearchPaginator.class);
 
     /**
      * The number of elements to show per page.

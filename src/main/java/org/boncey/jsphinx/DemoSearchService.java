@@ -1,7 +1,7 @@
 package org.boncey.jsphinx;
 
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sphx.api.SphinxClient;
 import org.sphx.api.SphinxException;
 
@@ -11,11 +11,11 @@ import java.util.Properties;
 
 /**
  * Example service for searching Sphinx.
- * 
+ *
  * @author Darren Greaves
- * @version Copyright (c) 2011 Darren Greaves.
+ * Copyright (c) 2011 Darren Greaves.
  */
-public class DemoSearchService extends SearchService
+public class DemoSearchService extends SearchService<SearchCommand>
 {
 
     /**
@@ -23,41 +23,35 @@ public class DemoSearchService extends SearchService
      */
     private static final String TEXT = "text";
 
-
     /**
      * Sphinx field for title.
      */
     private static final String TITLE = "title";
-
 
     /**
      * Sphinx field for tags.
      */
     private static final String TAGS = "tags";
 
-
     /**
      * The delta Sphinx index name.
      */
     private static final String INDEX_DELTA = "demo_delta";
-
 
     /**
      * The maximum matches Sphinx can return.
      */
     public static final int MAX_MATCHES = 1000;
 
-
     /**
      * Logger for log4j.
      */
     @SuppressWarnings("unused")
-    private static Logger _log = Logger.getLogger(DemoSearchService.class);
-
+    private static Logger _log = LoggerFactory.getLogger(DemoSearchService.class);
 
     /**
      * Default constructor.
-     * 
+     *
      * @param props
      */
     public DemoSearchService(Properties props)
@@ -66,10 +60,9 @@ public class DemoSearchService extends SearchService
         super(props);
     }
 
-
     /**
      * Create a Map of field weightings.
-     * 
+     *
      * @return
      */
     @Override
@@ -86,19 +79,16 @@ public class DemoSearchService extends SearchService
         return weightings;
     }
 
-
     /**
      * Get the field to sort by.
-     * 
+     *
      * @return
      */
     @Override
     protected String getSortField()
     {
-
         return "updated";
     }
-
 
     /**
      * {@inheritDoc}
@@ -122,7 +112,6 @@ public class DemoSearchService extends SearchService
         // sphinx.SetFilter(TAG_ID_FILTER, ids, false);
         // }
     }
-
 
     /**
      * {@inheritDoc}
