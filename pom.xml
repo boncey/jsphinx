@@ -5,13 +5,13 @@
 
     <groupId>org.boncey</groupId>
     <artifactId>jsphinx</artifactId>
-    <version>1.8</version>
+    <version>1.9</version>
 
     <properties>
         <!-- use UTF-8 for everything -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <slf4j.version>1.7.30</slf4j.version>
+        <slf4j.version>2.0.5</slf4j.version>
     </properties>
 
     <dependencies>
@@ -41,10 +41,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
-                <!-- compile for Java 11 -->
+                <!-- compile for Java 17 -->
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>17</source>
+                    <target>17</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
