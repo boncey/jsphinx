@@ -1,13 +1,11 @@
 package org.boncey.jsphinx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.Collections;
 import java.util.List;
 
 /**
  * A wrapper around any search results.
- * 
+ *
  * @author Darren Greaves
  * Copyright (c) 2010 Darren Greaves.
  */
@@ -15,46 +13,57 @@ public class SearchResultContainer
 {
 
     /**
-     * Default constructor.
+     * The total number of matches.
      */
-    public SearchResultContainer()
-    {
-
-    }
+    private final int _totalResults;
 
     /**
-     * Field constructor.
-     * 
+     * The time the search took in seconds.
+     */
+    private float _timeInSeconds;
+
+    /**
+     * The ids of the search results.
+     */
+    private final List<Long> _searchIds;
+
+    /**
+     * The search results combining ids and weights.
+     * Use as an alternative to #getSearchIds if you want the weight for each result.
+     */
+    private final List<SearchMatch> _matches;
+
+    /**
+     * Legacy field constructor.
+     *
      * @param searchIds
      * @param totalResults
      */
     public SearchResultContainer(List<Long> searchIds, int totalResults)
     {
 
-        this();
-        _searchIds = searchIds;
-        _totalResults = totalResults;
+        this(searchIds, totalResults, Collections.emptyList(), 0f);
     }
 
     /**
-     * Logger for log4j.
+     * Field constructor.
+     *
+     * @param searchIds
+     * @param totalResults
+     * @param matches
      */
-    @SuppressWarnings("unused")
-    private static Logger _log = LoggerFactory.getLogger(SearchResultContainer.class);
+    public SearchResultContainer(List<Long> searchIds, int totalResults, List<SearchMatch> matches, float timeInSeconds)
+    {
 
-    /**
-     * The total number of matches.
-     */
-    private int _totalResults;
-
-    /**
-     * The ids of the search results.
-     */
-    private List<Long> _searchIds;
+        _searchIds = searchIds;
+        _totalResults = totalResults;
+        _matches = matches;
+        _timeInSeconds = timeInSeconds;
+    }
 
     /**
      * Get the searchIds.
-     * 
+     *
      * @return the searchIds.
      */
     public List<Long> getSearchIds()
@@ -65,13 +74,23 @@ public class SearchResultContainer
 
     /**
      * Get the totalResults.
-     * 
+     *
      * @return the totalResults.
      */
     public int getTotalResults()
     {
 
         return _totalResults;
+    }
+
+    public List<SearchMatch> getMatches()
+    {
+        return _matches;
+    }
+
+    public float getTimeInSeconds()
+    {
+        return _timeInSeconds;
     }
 
     /**

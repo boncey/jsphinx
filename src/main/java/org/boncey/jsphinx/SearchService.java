@@ -152,14 +152,14 @@ public abstract class SearchService<S extends SearchCommand>
                     "Query '" + searchCommand.getSearchPhrase() + "' retrieved " + res.total + " of " + res.totalFound + " matches in " + res.time + " sec.");
         }
 
+        List<SearchMatch> matches = new ArrayList<>();
         for (SphinxMatch info : res.matches)
         {
-            searchIds.add(new Long(info.docId));
+            searchIds.add(info.docId);
+            matches.add(SearchMatch.fromSphinxMatch(info));
         }
 
-        SearchResultContainer results = new SearchResultContainer(searchIds, totalFound);
-
-        return results;
+        return new SearchResultContainer(searchIds, totalFound, matches, res.time);
     }
 
     /**
