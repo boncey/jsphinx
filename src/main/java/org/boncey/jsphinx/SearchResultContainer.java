@@ -2,6 +2,7 @@ package org.boncey.jsphinx;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A wrapper around any search results.
@@ -34,6 +35,11 @@ public class SearchResultContainer
     private final List<SearchMatch> _matches;
 
     /**
+     * Facet counts keyed by attribute name, then by attribute value.
+     */
+    private final Map<String, List<FacetEntry>> _facets;
+
+    /**
      * Legacy field constructor.
      *
      * @param searchIds
@@ -42,7 +48,7 @@ public class SearchResultContainer
     public SearchResultContainer(List<Long> searchIds, int totalResults)
     {
 
-        this(searchIds, totalResults, Collections.emptyList(), 0f);
+        this(searchIds, totalResults, Collections.emptyList(), 0f, Collections.emptyMap());
     }
 
     /**
@@ -51,14 +57,32 @@ public class SearchResultContainer
      * @param searchIds
      * @param totalResults
      * @param matches
+     * @param timeInSeconds
      */
     public SearchResultContainer(List<Long> searchIds, int totalResults, List<SearchMatch> matches, float timeInSeconds)
+    {
+
+        this(searchIds, totalResults, matches, timeInSeconds, Collections.emptyMap());
+    }
+
+    /**
+     * Field constructor with facets.
+     *
+     * @param searchIds
+     * @param totalResults
+     * @param matches
+     * @param timeInSeconds
+     * @param facets
+     */
+    public SearchResultContainer(List<Long> searchIds, int totalResults, List<SearchMatch> matches, float timeInSeconds,
+            Map<String, List<FacetEntry>> facets)
     {
 
         _searchIds = searchIds;
         _totalResults = totalResults;
         _matches = matches;
         _timeInSeconds = timeInSeconds;
+        _facets = facets;
     }
 
     /**
@@ -86,6 +110,11 @@ public class SearchResultContainer
     public List<SearchMatch> getMatches()
     {
         return _matches;
+    }
+
+    public Map<String, List<FacetEntry>> getFacets()
+    {
+        return _facets;
     }
 
     public float getTimeInSeconds()

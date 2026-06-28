@@ -7,6 +7,7 @@ import org.boncey.jsphinx.SearchService.SortOrder;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,6 +50,11 @@ public class SearchCommand
      * Note: Use spaces to separate multiple indexes.
      */
     private String _indexNames;
+
+    /**
+     * Sphinx attribute names to compute facet counts for.
+     */
+    private final List<String> _facetFields = new ArrayList<>();
 
     /**
      * Default constructor.
@@ -145,6 +151,16 @@ public class SearchCommand
     public void setIndexNames(String indexNames)
     {
         _indexNames = indexNames;
+    }
+
+    public void addFacetField(String field)
+    {
+        _facetFields.add(field);
+    }
+
+    public List<String> getFacetFields()
+    {
+        return Collections.unmodifiableList(_facetFields);
     }
 
     /**

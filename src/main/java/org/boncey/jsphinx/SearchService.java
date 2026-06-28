@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -29,6 +30,11 @@ public abstract class SearchService<S extends SearchCommand>
      * The maximum matches Sphinx can return.
      */
     public static final int MAX_MATCHES = 1000;
+
+    /**
+     * The maximum number of distinct values returned per facet.
+     */
+    public static final int MAX_FACET_VALUES = 100;
 
     /**
      * Logger for log4j.
@@ -99,67 +105,115 @@ public abstract class SearchService<S extends SearchCommand>
     public SearchResultContainer search(S searchCommand) throws SphinxException
     {
 
-        int totalFound = 0;
         int limit = searchCommand.getPerPage();
         int offset = searchCommand.getOffset() > MAX_MATCHES ? MAX_MATCHES - limit : searchCommand.getOffset();
         String searchPhrase = searchCommand.getSearchPhrase();
-
-        List<Long> searchIds = new ArrayList<Long>();
-        int mode = SphinxClient.SPH_MATCH_ALL;
+        List<String> facetFields = searchCommand.getFacetFields();
 
         SphinxClient sphinx = new SphinxClient();
-
         sphinx.SetServer(_host, _port);
-        Map<String, Integer> fieldWeights = createFieldWeightings();
-        sphinx.SetFieldWeights(fieldWeights);
-        sphinx.SetMatchMode(mode);
-        sphinx.SetLimits(offset, limit, MAX_MATCHES);
+        sphinx.SetFieldWeights(createFieldWeightings());
+        sphinx.SetMatchMode(SphinxClient.SPH_MATCH_ALL);
 
         if (searchCommand.isSortByRelevance())
         {
-            // Sort by relevance then specified sort field
             sphinx.SetSortMode(SphinxClient.SPH_SORT_EXTENDED,
                     String.format("@relevance DESC, %s %s", searchCommand.getSortField(), searchCommand.getSortOrder()));
         }
         else
         {
-            int sortMode = SphinxClient.SPH_SORT_ATTR_ASC;
-            if (searchCommand.getSortOrder() == SortOrder.DESC)
-            {
-                sortMode = SphinxClient.SPH_SORT_ATTR_DESC;
-            }
-            // Sort purely by specified sort field
+            int sortMode = searchCommand.getSortOrder() == SortOrder.DESC ?
+                    SphinxClient.SPH_SORT_ATTR_DESC : SphinxClient.SPH_SORT_ATTR_ASC;
             sphinx.SetSortMode(sortMode, searchCommand.getSortField());
         }
 
         addFilters(searchCommand, sphinx);
 
-        SphinxResult res = sphinx.Query(searchPhrase, searchCommand.getIndexNames());
-        if (res == null)
+        sphinx.SetLimits(offset, limit, MAX_MATCHES);
+        sphinx.AddQuery(searchPhrase, searchCommand.getIndexNames(), "");
+
+        for (String facetField : facetFields)
+        {
+            sphinx.SetLimits(0, MAX_FACET_VALUES, MAX_MATCHES);
+            sphinx.SetGroupBy(facetField, SphinxClient.SPH_GROUPBY_ATTR, "@count desc");
+            sphinx.AddQuery(searchPhrase, searchCommand.getIndexNames(), "");
+        }
+
+        SphinxResult[] results = sphinx.RunQueries();
+        if (results == null || results.length == 0)
         {
             throw new SphinxException("Sphinx Error: " + sphinx.GetLastError());
         }
 
-        if (sphinx.GetLastWarning() != null && sphinx.GetLastWarning().length() > 0)
+        SphinxResult mainResult = results[0];
+        if (mainResult == null || mainResult.getStatus() == SphinxClient.SEARCHD_ERROR)
         {
-            _log.warn("WARNING: " + sphinx.GetLastWarning() + "\n");
+            throw new SphinxException("Sphinx Error: " + sphinx.GetLastError());
         }
 
-        totalFound = res.total;
+        if (mainResult.warning != null && mainResult.warning.length() > 0)
+        {
+            _log.warn("WARNING: " + mainResult.warning + "\n");
+        }
+
         if (_log.isDebugEnabled())
         {
-            _log.debug(
-                    "Query '" + searchCommand.getSearchPhrase() + "' retrieved " + res.total + " of " + res.totalFound + " matches in " + res.time + " sec.");
+            _log.debug("Query '" + searchPhrase + "' retrieved " + mainResult.total + " of " + mainResult.totalFound + " matches in " + mainResult.time + " sec.");
         }
 
+        List<Long> searchIds = new ArrayList<>();
         List<SearchMatch> matches = new ArrayList<>();
-        for (SphinxMatch info : res.matches)
+        for (SphinxMatch info : mainResult.matches)
         {
             searchIds.add(info.docId);
             matches.add(SearchMatch.fromSphinxMatch(info));
         }
 
-        return new SearchResultContainer(searchIds, totalFound, matches, res.time);
+        Map<String, List<FacetEntry>> facets = new LinkedHashMap<>();
+        for (int i = 0; i < facetFields.size(); i++)
+        {
+            facets.put(facetFields.get(i), extractFacetEntries(results[i + 1]));
+        }
+
+        return new SearchResultContainer(searchIds, mainResult.total, matches, mainResult.time, facets);
+    }
+
+    private List<FacetEntry> extractFacetEntries(SphinxResult result)
+    {
+
+        List<FacetEntry> entries = new ArrayList<>();
+        if (result == null || result.matches == null || result.attrNames == null)
+        {
+            return entries;
+        }
+
+        int groupByIndex = -1;
+        int countIndex = -1;
+        for (int i = 0; i < result.attrNames.length; i++)
+        {
+            if ("@groupby".equals(result.attrNames[i]))
+            {
+                groupByIndex = i;
+            }
+            else if ("@count".equals(result.attrNames[i]))
+            {
+                countIndex = i;
+            }
+        }
+
+        if (groupByIndex == -1 || countIndex == -1)
+        {
+            return entries;
+        }
+
+        for (SphinxMatch match : result.matches)
+        {
+            String value = String.valueOf(match.attrValues.get(groupByIndex));
+            int count = ((Long) match.attrValues.get(countIndex)).intValue();
+            entries.add(new FacetEntry(value, count));
+        }
+
+        return entries;
     }
 
     /**
